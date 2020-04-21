@@ -188,10 +188,27 @@ void DFA::minimizareDFA()
 		for (auto& a : this->getSigma())
 		{
 			for (auto& j : i)
-				cout << j << " ";
+				cout << j << " "; // de unde pleaca
 			cout << "                           ";
-			cout << a << "                     ";
-			cout << this->getDelta()[{*i.begin(), a}];
+			cout << a << "                     ";  //litera
+			int ok = 0;
+			for (auto& k : states) // unde ajunge
+			{
+				for (auto& j : k)
+				{
+					if (j == this->getDelta()[{*i.begin(), a}])
+					{
+						ok = 1;
+						break;
+					}
+				}
+				if (ok)
+				{
+					for (auto& j : k)
+						cout << j << " ";
+					break;
+				}
+			}
 			cout << '\n';
 
 		}
