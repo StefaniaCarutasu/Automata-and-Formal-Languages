@@ -1,0 +1,5 @@
+﻿  DFA.cpp
+C:\Facultate\lambdaNfa\minimizareDFA\DFA.cpp(67,20): warning C4018: '<': signed/unsigned mismatch
+C:\Facultate\lambdaNfa\minimizareDFA\DFA.cpp(69,20): warning C4018: '<': signed/unsigned mismatch
+C:\Facultate\lambdaNfa\minimizareDFA\DFA.cpp(70,21): warning C4018: '<': signed/unsigned mismatch
+  minimizareDFA.vcxproj -> C:\Facultate\lambdaNfa\minimizareDFA\Debug\minimizareDFA.exe
