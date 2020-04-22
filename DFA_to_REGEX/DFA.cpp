@@ -50,12 +50,13 @@ string DFA::dfaToRegex()
 	string lambda = "£";
 	string** matrix;  // creez o matrice care va retine drumul dintre oricare 2 stari din AFD
 	//toate starile vor fi incrementate cu 1 pentru a putea lasa loc pentru o eventuala stare initiala auxiliara
-	matrix = new string * [5];
+	matrix = new string * [Q.size()+2];
+	for (int i = 0; i < Q.size() + 2; i++)
+		matrix[i] = new string[Q.size() + 2];
 	for (int i = 0; i < 5; i++)
-		matrix[i] = new string[5];
-	for (int i = 0; i < 5; i++)
-		for (int j = 0; j < 5; j++)
+		for (int j = 0; j < Q.size() + 2; j++)
 			matrix[i][j] = "";
+
 	int newInit = this->q0 + 1; //starea initiala auxiliara este starea initiala a DFA ului pana verificam daca exista tranzitii care intra in starea initiala
 	//pas 1.1: verific daca exista tranzitii care intra in starea initiala
 	for (auto& i : this->delta)
@@ -89,14 +90,18 @@ string DFA::dfaToRegex()
 	//daca nu se intampla niciuna dintre cele 2 conditii de la 1.2 si 1.3 atunci automatul are o singura stare finala
 	//si din ea nu mai porneste nicio tranzitie; starea finala ramane starea finala a automatului
 
+	//pas2: formez AFE
+	for (auto& i : delta)
+		if (matrix[i.first.first + 1][i.second + 1] == "")
+			matrix[i.first.first + 1][i.second + 1] = i.first.second;
+		else matrix[i.first.first + 1][i.second + 1] = "( " + matrix[i.first.first + 1][i.second + 1] + "+" + i.first.second + " )";
 	
-
 	//pas3: formez o multime noua doar cu acele stari ale automatului care nu sunt initiale sau finale
 	set<int> stariAuxiliare;
 	for (auto& i : Q)
 		if ((i + 1) != newInit && (i + 1) != newFinal)
 			stariAuxiliare.insert(i + 1);
-	int noOfStates = stariAuxiliare.size() + 1; //nr stari AFE
+	int noOfStates = stariAuxiliare.size() + 2; //nr stari AFE
 	//pas4: pe rand voi elimina fiecare stare intermediara a automatului, construind expresia regulata
 	set <int> stariCurente;		//un set cu starile automatului dupa fiecare eliminare				
 	for (int i = 0; i < noOfStates; i++)

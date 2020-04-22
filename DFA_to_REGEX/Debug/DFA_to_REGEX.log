@@ -1,2 +1,4 @@
 ﻿  DFA.cpp
+C:\Facultate\lambdaNfa\DFA_to_REGEX\DFA.cpp(54,20): warning C4018: '<': signed/unsigned mismatch
+C:\Facultate\lambdaNfa\DFA_to_REGEX\DFA.cpp(57,21): warning C4018: '<': signed/unsigned mismatch
   DFA_to_REGEX.vcxproj -> C:\Facultate\lambdaNfa\DFA_to_REGEX\Debug\DFA_to_REGEX.exe
