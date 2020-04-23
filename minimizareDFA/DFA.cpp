@@ -3,6 +3,7 @@
 DFA::DFA() 
 {
 	this->q0 = 0;
+	partitii = NULL;
 }
 DFA::DFA(set<int> Q, set<char> Sigma, map<pair<int, char>, int> delta, int q0, set<int> F)
 {
@@ -13,11 +14,13 @@ DFA::DFA(set<int> Q, set<char> Sigma, map<pair<int, char>, int> delta, int q0, s
 	this->F = F;
 	
 }
+
 int DFA::getInitialState() { return this->q0; }
 set<int> DFA::getFinalState() { return this->F; }
 set<int> DFA::getStates() {	return this->Q; }
 set<char> DFA::getSigma() { return this->Sigma; }
 map<pair<int, char>, int> DFA::getDelta() { return this->delta; }
+
 istream& operator >> (istream& f, DFA& M)
 {
 	int noOfStates;
@@ -61,7 +64,7 @@ istream& operator >> (istream& f, DFA& M)
 
 	return f;
 }
-void DFA::initializarePartitii()
+void DFA::initializarePartitii()   //partitii este o matrice care va fi completata doar sub diagonala principala 
 {
 	partitii = new int* [this->Q.size() - 1];
 	for (int i = 0; i < this->Q.size(); i++)
@@ -70,9 +73,9 @@ void DFA::initializarePartitii()
 		for (int j = 0; j < this->Q.size(); j++)
 			partitii[i][j] = 0;
 
-	for (auto& i : this->getFinalState())
+	for (auto i : this->getFinalState())  //initial marcam cu 1 perechile (i,j) unde i este stare finala si j nu este sau invers
 	{
-		for (auto& j : this->getStates())
+		for (auto j : this->getStates())
 			if (isFinalState(j) == false)
 			{
 				if (i < j)
@@ -88,19 +91,19 @@ bool DFA::isFinalState(int q)
 	return F.find(q) != F.end();
 }
 
-void DFA::Partitii()
+void DFA::Partitii() 
 {
 	int ok = 0;
-	for(auto& i: this->getStates())
-		for (auto& j : this->getStates())
-			for (auto& a : this->getSigma())
+	for(auto i: this->getStates())  //pentru fiecare stare a automatului
+		for (auto j : this->getStates())	//pentru fiecare stare a automatului
+			for (auto a : this->getSigma())	//pentru fiecare litera a alfabetului
 			{
-				if (i != j && (partitii[i][j]==0 && partitii[j][i]==0))
+				if (i != j && (partitii[i][j]==0 && partitii[j][i]==0))	//daca cele 2 stari sunt diferite si inca nu a fost verificat daca fac parte din aceeasi partitie
 				{
-					pair<int, int > p = { getDelta()[{i,a}], getDelta()[{j,a}] };
-					if (partitii[p.first][p.second] == 1 || partitii[p.second][p.first] == 1)
+					pair<int, int > p = { getDelta()[{i,a}], getDelta()[{j,a}] };	//p este perechea formata din starile in care ajung i si j cu litera a
+					if (partitii[p.first][p.second] == 1 || partitii[p.second][p.first] == 1)	//daca aceasta pereche este marcata in matrice atunci marcam si perechea (i,j)
 					{
-						if (i < j)
+						if (i < j)  //vreau sa marchez doar sub diagonala principala
 							partitii[j][i] = 1;
 						else partitii[i][j] = 1;
 						ok = 1;
@@ -110,7 +113,7 @@ void DFA::Partitii()
 	if (ok == 1)
 	{
 		ok = 0;
-		Partitii();
+		Partitii();  //daca a fost facuta o modificare atunci mai executam inca o data algoritmul
 	}
 }
 
@@ -118,27 +121,53 @@ void DFA::minimizareDFA()
 {
 	Partitii();
 	int l =this->getStates().size();
-	set<set<int>> states;
-	set<int> p;
-	for(int i=1; i<l; i++)
+	set<set<int>> states;  //multimea partitiilor
+	set<int> p;   //in p voi retine fiecare partitie in parte
+	for(int i=0; i<l; i++)
 	{
-		p.insert(i);
-		for (int j = 0; j < l; j++)
-		{
-			if (partitii[i][j] == 0 && i > j)
-				p.insert(j);
-		}
-		if (p.size() > 0)
-		{
-			states.insert(p);
-			p.clear();
-		}
+		p.insert(i);	//adaugam i la partitie
+			for (auto j: this->getStates())
+			{
+				if (partitii[i][j] == 0 && i > j && i!=j)	//toate starile de pe coloana lui i care sunt marcate cu 0 in matrice vor fi in aceeasi partitie cu i
+					p.insert(j);
+			}
+			if (p.size() > 0)	
+			{
+				states.insert(p);	//adaug noua partitie la multime
+				p.clear();	//eliberez p pentru a-l putea reutiliza pentru urmatoarea stare din Q
+			}
 	}
+
+	//este posibil ca o stare sa imi apara atat singura cat si in partitie (starea q0 in special) asa ca daca se intampla asta atunci o scoatem din multimea de stari
+	set<set<int>> states1;
+	for (auto i : states)	//pt fiecare set din setul mare
+		if (i.size() == 1)	//daca setul are exact un element
+		{
+			int ok = 0;
+				for (auto j : states)	//pentru fiecare set din setul mare
+					if (j.find(*i.begin()) != j.end() && j.size() >= 2)		//verific daca elementul se afla in alt set de lungime mai mare decat 1
+						ok = 1;
+			if (ok == 0)
+				states1.insert(i);	//daca nu mai apare o adaugam la noua multime
+		}
+		else states1.insert(i);		//orice partitie cu mai mult de un element este adaugata automat la noua multime
+	states.clear();
+	states = states1;
+				
+	cout << "Starile sunt: ";
+	for (auto i : states)
+	{
+		cout << "( ";
+		for (auto j : i)
+			cout << j << " ";
+		cout << ") ";
+	}
+	cout << '\n';
 	cout << "Starea initiala este: ";
 	for (auto& i : states)
 	{
 		int ok = 0;
-		for (auto& j : i)
+		for (auto j : i)
 		{
 			if (j == this->q0)
 			{
@@ -149,7 +178,7 @@ void DFA::minimizareDFA()
 		if (ok)
 		{
 			cout << "( ";
-			for (auto& j : i)
+			for (auto j : i)
 				cout << j << " ";
 			cout << ")";
 		}
@@ -157,15 +186,15 @@ void DFA::minimizareDFA()
 	cout << '\n';
 
 	cout << "Alfabetul este: ";
-	for (auto& a : this->getSigma())
+	for (auto a : this->getSigma())
 		cout << a << " ";
 	cout << '\n';
 
 	cout << "Starile finale sunt: ";
-	for(auto& i: states)
+	for(auto i: states)
 	{
 		int ok = 0;
-		for (auto& j : i)
+		for (auto j : i)
 		{
 			if (this->isFinalState(j) == true)
 				ok = 1;
@@ -175,7 +204,7 @@ void DFA::minimizareDFA()
 		if (ok)
 		{
 			cout << "(";
-			for (auto& j : i)
+			for (auto j : i)
 				cout << j << " ";
 			cout << ") ";
 		}
@@ -183,18 +212,18 @@ void DFA::minimizareDFA()
 	cout << '\n';
 
 	cout << "Starea din care pleaca" << "     " << "litera" << "     " << "starea in care ajunge"<<'\n';
-	for (auto& i : states)
+	for (auto i : states)
 	{
-		for (auto& a : this->getSigma())
+		for (auto a : this->getSigma())
 		{
-			for (auto& j : i)
+			for (auto j : i)
 				cout << j << " "; // de unde pleaca
 			cout << "                           ";
 			cout << a << "                     ";  //litera
 			int ok = 0;
-			for (auto& k : states) // unde ajunge
+			for (auto k : states) // unde ajunge
 			{
-				for (auto& j : k)
+				for (auto j : k)
 				{
 					if (j == this->getDelta()[{*i.begin(), a}])
 					{
@@ -204,7 +233,7 @@ void DFA::minimizareDFA()
 				}
 				if (ok)
 				{
-					for (auto& j : k)
+					for (auto j : k)
 						cout << j << " ";
 					break;
 				}
