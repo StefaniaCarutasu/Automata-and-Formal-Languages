@@ -163,7 +163,7 @@ void DFA::minimizareDFA()
 		cout << ") ";
 	}
 	cout << '\n';
-	cout << "Starea initiala este: ";
+	cout << "Starea initiala este: ";	//partitia care contine starea initiala
 	for (auto& i : states)
 	{
 		int ok = 0;
@@ -185,12 +185,12 @@ void DFA::minimizareDFA()
 	}
 	cout << '\n';
 
-	cout << "Alfabetul este: ";
+	cout << "Alfabetul este: ";		//acelasi alfabet ca DFA ul initial
 	for (auto a : this->getSigma())
 		cout << a << " ";
 	cout << '\n';
 
-	cout << "Starile finale sunt: ";
+	cout << "Starile finale sunt: ";	//partitiile care au stari finale ale DFA ului initial
 	for(auto i: states)
 	{
 		int ok = 0;
